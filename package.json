@@ -1,0 +1,65 @@
+{
+  "name": "codesnap",
+  "displayName": "CodeSnap",
+  "description": "Take beautiful code screenshots from VS Code.",
+  "version": "1.0.0",
+  "publisher": "your-publisher-name",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:codesnap.takeScreenshot"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "codesnap.takeScreenshot",
+        "title": "CodeSnap: Take Screenshot"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "CodeSnap Settings",
+      "properties": {
+        "codesnap.savePath": {
+          "type": "string",
+          "default": "~/Downloads",
+          "description": "Default folder path to save screenshots."
+        },
+        "codesnap.imageFormat": {
+          "type": "string",
+          "default": "png",
+          "enum": ["png", "jpeg", "webp"],
+          "description": "Preferred image format for screenshots."
+        },
+        "codesnap.includeLineNumbers": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include line numbers in screenshots."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "tsc -p ./",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.80.0",
+    "typescript": "^5.0.0",
+    "vscode-test": "^1.7.0"
+  },
+  "dependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/codesnap.git"
+  },
+  "license": "MIT"
+}

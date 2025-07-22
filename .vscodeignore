@@ -1,0 +1,15 @@
+node_modules
+.git
+.vscode
+*.log
+*.ts
+*.map
+test
+src
+build
+tsconfig.json
+.vscode/
+.vscode-test/
+*.vsix
+README.md
+LICENSE
