@@ -1,48 +1,80 @@
 {
-  "name": "codesnap",
-  "displayName": "CodeSnap",
-  "description": "Take beautiful code screenshots from VS Code.",
-  "version": "1.0.0",
-  "publisher": "your-publisher-name",
+  "name": "spider-screenshot",
+  "displayName": "Spider Screenshot",
+  "description": "Take beautiful code screenshots from VS Code, auto-save them, backup, restore and manage snapshots easily.",
+  "version": "1.1.0",
+  "publisher": "SpiderDev",
+  "icon": "assets/icon.png",
   "engines": {
     "vscode": "^1.80.0"
   },
   "categories": [
     "Other"
   ],
-  "activationEvents": [
-    "onCommand:codesnap.takeScreenshot"
-  ],
+ 
   "main": "./out/extension.js",
   "contributes": {
-    "commands": [
-      {
-        "command": "codesnap.takeScreenshot",
-        "title": "CodeSnap: Take Screenshot"
-      }
-    ],
     "configuration": {
-      "type": "object",
-      "title": "CodeSnap Settings",
       "properties": {
-        "codesnap.savePath": {
-          "type": "string",
-          "default": "~/Downloads",
-          "description": "Default folder path to save screenshots."
-        },
-        "codesnap.imageFormat": {
-          "type": "string",
-          "default": "png",
-          "enum": ["png", "jpeg", "webp"],
-          "description": "Preferred image format for screenshots."
-        },
-        "codesnap.includeLineNumbers": {
+        "codesnap.autoScreenshotOnSave": {
           "type": "boolean",
-          "default": true,
-          "description": "Include line numbers in screenshots."
+          "default": false,
+          "description": "Automatically take a screenshot when saving a file"
+        },
+        "codesnap.screenshotDirectory": {
+          "type": "string",
+          "default": "",
+          "description": "Custom directory to save screenshots (leave blank for default ~/SpiderScreenshots)"
+        },
+        "codesnap.keepMaxSnapshots": {
+          "type": "number",
+          "default": 100,
+          "description": "Maximum number of snapshots to keep in history (older ones will be removed automatically)."
         }
       }
-    }
+    },
+    "commands": [
+      {
+        "command": "spiderScreenshot.settings",
+        "title": "Spider Screenshot: Open Settings"
+      },
+      {
+        "command": "codesnap.saveCodeHistory",
+        "title": "CodeSnap: Save Code Snapshot"
+      },
+      {
+        "command": "codesnap.viewHistory",
+        "title": "CodeSnap: View Code History"
+      },
+      {
+        "command": "codesnap.clearSnapshots",
+        "title": "CodeSnap: Clear All Snapshots"
+      },
+      {
+        "command": "codesnap.backupSnapshots",
+        "title": "CodeSnap: Backup Snapshots"
+      },
+      {
+        "command": "codesnap.restoreBackup",
+        "title": "CodeSnap: Restore from Backup"
+      },
+      {
+        "command": "codesnap.openSnapshotFolder",
+        "title": "CodeSnap: Open Snapshot Folder"
+      },
+      {
+        "command": "codesnap.showLogs",
+        "title": "CodeSnap: Show Snapshot Logs"
+      },
+      {
+        "command": "codesnap.showLatestSnapshot",
+        "title": "CodeSnap: Show Latest Snapshot"
+      },
+      {
+        "command": "codesnap.showSaveLocation",
+        "title": "CodeSnap: Show Save Folder Path"
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "tsc -p ./",
@@ -52,14 +84,19 @@
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
+    "@types/node": "^24.1.0",
+    "@types/node-fetch": "^2.6.12",
     "@types/vscode": "^1.80.0",
-    "typescript": "^5.0.0",
-    "vscode-test": "^1.7.0"
+    "@vscode/test-electron": "^2.2.3",
+    "typescript": "^5.0.0"
   },
-  "dependencies": {},
+  "dependencies": {
+    "adm-zip": "^0.5.16",
+    "node-fetch": "^2.6.9"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/codesnap.git"
+    "url": "https://github.com/Omer-sanee/codesnap.git"
   },
   "license": "MIT"
 }
