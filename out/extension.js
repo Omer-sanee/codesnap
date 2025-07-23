@@ -51,18 +51,21 @@ const vscode = __importStar(require("vscode"));
 const fs = __importStar(require("fs"));
 const os = __importStar(require("os"));
 const path = __importStar(require("path"));
-const node_fetch_1 = __importDefault(require("node-fetch")); // Ensure this is included in your package.json
+const node_fetch_1 = __importDefault(require("node-fetch"));
 const SettingsPanel_1 = __importDefault(require("./SettingsPanel"));
 const TRIAL_FILE = path.join(os.homedir(), '.codesnap_trial.json');
 const HISTORY_DIR = path.join(os.homedir(), 'codesnap_history');
+const HISTORY_DIR = path.join(os.homedir(), 'codesnap_history');
 const BACKUP_DIR = path.join(os.homedir(), 'codesnap_backups');
 const LOG_FILE = path.join(os.homedir(), 'codesnap_logs.txt');
+// Encryption helpers
 function encrypt(content) {
     return Buffer.from(content, 'utf-8').toString('base64');
 }
 function decrypt(encoded) {
     return Buffer.from(encoded, 'base64').toString('utf-8');
 }
+// Trial management
 function isTrialExpired() {
     if (!fs.existsSync(TRIAL_FILE)) {
         fs.writeFileSync(TRIAL_FILE, JSON.stringify({ startedAt: new Date().toISOString() }, null, 2));
@@ -71,12 +74,11 @@ function isTrialExpired() {
     const data = JSON.parse(fs.readFileSync(TRIAL_FILE, 'utf-8'));
     const startDate = new Date(data.startedAt);
     const now = new Date();
-    const daysPassed = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-    return daysPassed > 30;
+    return (now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24) > 30;
 }
+// Utilities
 function logEvent(message) {
-    const entry = `[${new Date().toISOString()}] ${message}\n`;
-    fs.appendFileSync(LOG_FILE, entry);
+    fs.appendFileSync(LOG_FILE, `[${new Date().toISOString()}] ${message}\n`);
 }
 function showStatusBar(message) {
     const statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
@@ -84,16 +86,17 @@ function showStatusBar(message) {
     statusBar.show();
     setTimeout(() => statusBar.dispose(), 3000);
 }
+// Snapshots
 function saveSnapshot(code, fileName) {
-    const time = new Date().toISOString().replace(/[:.]/g, '-');
     if (!fs.existsSync(HISTORY_DIR))
         fs.mkdirSync(HISTORY_DIR);
-    const encrypted = encrypt(code);
+    const time = new Date().toISOString().replace(/[:.]/g, '-');
     const filePath = path.join(HISTORY_DIR, `${fileName}-${time}.txt`);
-    fs.writeFileSync(filePath, encrypted);
+    fs.writeFileSync(filePath, encrypt(code));
     logEvent(`Saved snapshot: ${filePath}`);
     return filePath;
 }
+// Core features
 function showWelcomeMessage() {
     vscode.window.showInformationMessage('🎉 Spider Screenshot Activated!');
 }
@@ -106,7 +109,7 @@ function showLatestSnapshot() {
     if (!fs.existsSync(HISTORY_DIR))
         return;
     const files = fs.readdirSync(HISTORY_DIR).sort().reverse();
-    if (files.length === 0)
+    if (!files.length)
         return;
     const file = files[0];
     const content = decrypt(fs.readFileSync(path.join(HISTORY_DIR, file), 'utf-8'));
@@ -118,7 +121,7 @@ function showHistoryPanel() {
         return;
     }
     const files = fs.readdirSync(HISTORY_DIR);
-    if (files.length === 0) {
+    if (!files.length) {
         vscode.window.showInformationMessage('No code snapshots found.');
         return;
     }
@@ -140,9 +143,8 @@ function showHistoryPanel() {
                 const editor = vscode.window.activeTextEditor;
                 if (editor) {
                     const edit = new vscode.WorkspaceEdit();
-                    const doc = editor.document;
-                    const range = new vscode.Range(0, 0, doc.lineCount, 0);
-                    edit.replace(doc.uri, range, content);
+                    const range = new vscode.Range(0, 0, editor.document.lineCount, 0);
+                    edit.replace(editor.document.uri, range, content);
                     vscode.workspace.applyEdit(edit);
                 }
             }
@@ -166,11 +168,11 @@ function showLogs() {
     vscode.workspace.openTextDocument({ content, language: 'log' }).then(doc => vscode.window.showTextDocument(doc));
 }
 function getSavePath(fileName) {
-    const customDir = vscode.workspace.getConfiguration('codesnap').get('screenshotDirectory');
-    const saveDir = customDir || path.join(os.homedir(), 'SpiderScreenshots');
-    if (!fs.existsSync(saveDir))
-        fs.mkdirSync(saveDir, { recursive: true });
-    return path.join(saveDir, fileName);
+    const config = vscode.workspace.getConfiguration('codesnap');
+    const dir = config.get('screenshotDirectory') || path.join(os.homedir(), 'SpiderScreenshots');
+    if (!fs.existsSync(dir))
+        fs.mkdirSync(dir, { recursive: true });
+    return path.join(dir, fileName);
 }
 function uploadToImgur(imagePath) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -190,7 +192,7 @@ function uploadToImgur(imagePath) {
         });
         const data = yield response.json();
         if (data.success) {
-            vscode.env.clipboard.writeText(data.data.link);
+            yield vscode.env.clipboard.writeText(data.data.link);
             vscode.window.showInformationMessage('📤 Uploaded to Imgur! URL copied to clipboard.');
         }
         else {
@@ -199,23 +201,15 @@ function uploadToImgur(imagePath) {
     });
 }
 function activate(context) {
-    let validLicense = false;
-    const savedKey = context.globalState.get('spiderLicenseKey');
-    if (savedKey === 'SPIDERPRO-2025-UNLOCKED')
-        validLicense = true;
+    let validLicense = context.globalState.get('spiderLicenseKey') === 'SPIDERPRO-2025-UNLOCKED';
     const commands = [
         vscode.commands.registerCommand('spiderScreenshot.settings', () => {
             SettingsPanel_1.default.show(context.extensionUri);
         }),
         vscode.commands.registerCommand('codesnap.enterLicenseKey', () => __awaiter(this, void 0, void 0, function* () {
-            const key = yield vscode.window.showInputBox({
-                prompt: 'Enter your Spider Screenshot Pro License Key',
-                ignoreFocusOut: true
-            });
-            if (!key) {
-                vscode.window.showWarningMessage('❌ License key not provided.');
-                return;
-            }
+            const key = yield vscode.window.showInputBox({ prompt: 'Enter your Spider Screenshot Pro License Key', ignoreFocusOut: true });
+            if (!key)
+                return vscode.window.showWarningMessage('❌ License key not provided.');
             if (key === 'SPIDERPRO-2025-UNLOCKED') {
                 validLicense = true;
                 context.globalState.update('spiderLicenseKey', key);
@@ -238,23 +232,20 @@ function activate(context) {
         vscode.commands.registerCommand('codesnap.openSnapshotFolder', openSavedFolder),
         vscode.commands.registerCommand('codesnap.showLatestSnapshot', showLatestSnapshot),
         vscode.commands.registerCommand('codesnap.backupSnapshots', backupAllSnapshots),
-        vscode.commands.registerCommand('codesnap.showLogs', showLogs)
-    ];
-    const autoSaveListener = vscode.workspace.onDidSaveTextDocument(document => {
-        const config = vscode.workspace.getConfiguration('codesnap');
-        const autoSnap = config.get('autoScreenshotOnSave');
-        const snapshotEnabled = true; // always take snapshot on manual save
-        const code = document.getText();
-        const fileName = path.basename(document.fileName).replace(/[^a-z0-9]/gi, '_');
-        if (snapshotEnabled || autoSnap) {
-            saveSnapshot(code, fileName);
-            const msg = autoSnap ? '📸 Auto snapshot taken' : '💾 Snapshot saved';
-            showStatusBar(msg);
-        }
+        vscode.commands.registerCommand('codesnap.showLogs', showLogs),
         vscode.commands.registerCommand('codesnap.showSaveLocation', () => {
             vscode.window.showInformationMessage(`📁 Your snapshots are saved in:\n${HISTORY_DIR}`);
-        });
-    });
+        })
+    ];
+    const autoSaveListener = vscode.workspace.onDidSaveTextDocument((document) => __awaiter(this, void 0, void 0, function* () {
+        const config = vscode.workspace.getConfiguration('codesnap');
+        const autoSnap = config.get('autoScreenshotOnSave') || false;
+        if (autoSnap) {
+            const fileName = path.basename(document.fileName).replace(/[^a-z0-9]/gi, '_');
+            saveSnapshot(document.getText(), fileName);
+            showStatusBar('📸 Auto snapshot saved');
+        }
+    }));
     context.subscriptions.push(...commands, autoSaveListener);
     showWelcomeMessage();
     if (validLicense) {
@@ -263,7 +254,6 @@ function activate(context) {
     else {
         vscode.window.showWarningMessage('🟡 Pro features are locked.');
     }
-    SettingsPanel_1.default.show(context.extensionUri, context);
 }
 function deactivate() { }
 //# sourceMappingURL=extension.js.map
