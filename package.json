@@ -1,8 +1,8 @@
 {
   "name": "spider-screenshot",
   "displayName": "Spider Screenshot",
-  "description": "Take beautiful code screenshots from VS Code, auto-save them, backup, restore and manage snapshots easily.",
-  "version": "1.1.0",
+  "description": "Capture code snapshots, generate professional bug reports, and prepare for Pro cloud sync — built for developers.",
+  "version": "1.5.0",
   "publisher": "SpiderDev",
   "icon": "assets/icon.png",
   "engines": {
@@ -11,7 +11,13 @@
   "categories": [
     "Other"
   ],
- 
+  "activationEvents": [
+    "onStartupFinished",
+    "onCommand:spiderScreenshot.upgradeToPro",
+    "onCommand:spiderScreenshot.createBugReport",
+    "onCommand:spiderScreenshot.settings",
+    "onCommand:spiderScreenshot.showHelp"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "configuration": {
@@ -28,8 +34,23 @@
         },
         "codesnap.keepMaxSnapshots": {
           "type": "number",
-          "default": 100,
+          "default": 200,
           "description": "Maximum number of snapshots to keep in history (older ones will be removed automatically)."
+        },
+        "codesnap.maxSnapshotSize": {
+          "type": "number",
+          "default": 1,
+          "description": "Maximum snapshot size in MB (prevents saving huge files)"
+        },
+        "codesnap.enableCloudSync": {
+          "type": "boolean",
+          "default": false,
+          "description": "☁️ Enable Spider Cloud Sync (Beta) - Save snapshots to cloud for backup and future features"
+        },
+        "codesnap.telemetry": {
+          "type": "boolean",
+          "default": true,
+          "description": "📊 Allow anonymous usage telemetry (helps improve the extension)"
         }
       }
     },
@@ -51,6 +72,14 @@
         "title": "CodeSnap: Clear All Snapshots"
       },
       {
+        "command": "spiderScreenshot.showHelp",
+        "title": "Spider Screenshot: Show Help & Usage"
+      },
+      {
+        "command": "spiderScreenshot.createBugReport",
+        "title": "Spider Screenshot: Create Bug Report"
+      },
+      {
         "command": "codesnap.backupSnapshots",
         "title": "CodeSnap: Backup Snapshots"
       },
@@ -69,6 +98,10 @@
       {
         "command": "codesnap.showLatestSnapshot",
         "title": "CodeSnap: Show Latest Snapshot"
+      },
+      {
+        "command": "spiderScreenshot.upgradeToPro",
+        "title": "Spider Screenshot: Upgrade to Pro"
       },
       {
         "command": "codesnap.showSaveLocation",
