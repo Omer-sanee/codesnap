@@ -2,25 +2,139 @@
   "name": "spider-screenshot",
   "displayName": "Spider Screenshot",
   "description": "Capture code snapshots, generate professional bug reports, and prepare for Pro cloud sync — built for developers.",
-  "version": "1.5.0",
+  "version": "1.6.0",
+  "license": "MIT",
   "publisher": "SpiderDev",
   "icon": "assets/icon.png",
   "engines": {
     "vscode": "^1.80.0"
   },
   "categories": [
-    "Other"
+    "Other",
+    "Snippets",
+    "Visualization",
+    "Testing"
+  ],
+  "keywords": [
+    "screenshot",
+    "code snapshot",
+    "bug report",
+    "feature request",
+    "code history",
+    "backup",
+    "cloud sync",
+    "spider",
+    "codesnap",
+    "debug",
+    "testing"
   ],
   "activationEvents": [
     "onStartupFinished",
-    "onCommand:spiderScreenshot.upgradeToPro",
-    "onCommand:spiderScreenshot.createBugReport",
     "onCommand:spiderScreenshot.settings",
-    "onCommand:spiderScreenshot.showHelp"
+    "onCommand:spiderScreenshot.upgradeToPro",
+    "onCommand:spiderScreenshot.reportBug",
+    "onCommand:spiderScreenshot.showHelp",
+    "onCommand:codesnap.saveCodeHistory",
+    "onCommand:codesnap.viewHistory",
+    "onCommand:codesnap.clearSnapshots",
+    "onCommand:codesnap.backupSnapshots",
+    "onCommand:codesnap.restoreBackup",
+    "onCommand:codesnap.openSnapshotFolder",
+    "onCommand:codesnap.showLogs",
+    "onCommand:codesnap.showLatestSnapshot",
+    "onCommand:codesnap.showSaveLocation",
+    "onCommand:codesnap.enterLicenseKey"
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "commands": [
+      {
+        "command": "spiderScreenshot.settings",
+        "title": "Spider Screenshot: Open Settings",
+        "category": "Spider Screenshot",
+        "icon": "$(gear)"
+      },
+      {
+        "command": "spiderScreenshot.upgradeToPro",
+        "title": "Spider Screenshot: Upgrade to Pro",
+        "category": "Spider Screenshot",
+        "icon": "$(rocket)"
+      },
+      {
+        "command": "spiderScreenshot.reportBug",
+        "title": "Spider Screenshot: Report Bug / Request Feature",
+        "category": "Spider Screenshot",
+        "icon": "$(bug)"
+      },
+      {
+        "command": "spiderScreenshot.showHelp",
+        "title": "Spider Screenshot: Show Help & Usage",
+        "category": "Spider Screenshot",
+        "icon": "$(question)"
+      },
+      {
+        "command": "codesnap.saveCodeHistory",
+        "title": "CodeSnap: Save Code Snapshot",
+        "category": "CodeSnap",
+        "icon": "$(camera)"
+      },
+      {
+        "command": "codesnap.viewHistory",
+        "title": "CodeSnap: View Code History",
+        "category": "CodeSnap",
+        "icon": "$(history)"
+      },
+      {
+        "command": "codesnap.clearSnapshots",
+        "title": "CodeSnap: Clear All Snapshots",
+        "category": "CodeSnap",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "codesnap.backupSnapshots",
+        "title": "CodeSnap: Backup Snapshots",
+        "category": "CodeSnap",
+        "icon": "$(archive)"
+      },
+      {
+        "command": "codesnap.restoreBackup",
+        "title": "CodeSnap: Restore from Backup",
+        "category": "CodeSnap",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "codesnap.openSnapshotFolder",
+        "title": "CodeSnap: Open Snapshot Folder",
+        "category": "CodeSnap",
+        "icon": "$(folder-opened)"
+      },
+      {
+        "command": "codesnap.showLogs",
+        "title": "CodeSnap: Show Snapshot Logs",
+        "category": "CodeSnap",
+        "icon": "$(output)"
+      },
+      {
+        "command": "codesnap.showLatestSnapshot",
+        "title": "CodeSnap: Show Latest Snapshot",
+        "category": "CodeSnap",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "codesnap.showSaveLocation",
+        "title": "CodeSnap: Show Save Folder Path",
+        "category": "CodeSnap",
+        "icon": "$(info)"
+      },
+      {
+        "command": "codesnap.enterLicenseKey",
+        "title": "CodeSnap: Enter License Key",
+        "category": "CodeSnap",
+        "icon": "$(key)"
+      }
+    ],
     "configuration": {
+      "title": "Spider Screenshot",
       "properties": {
         "codesnap.autoScreenshotOnSave": {
           "type": "boolean",
@@ -35,11 +149,15 @@
         "codesnap.keepMaxSnapshots": {
           "type": "number",
           "default": 200,
+          "minimum": 10,
+          "maximum": 1000,
           "description": "Maximum number of snapshots to keep in history (older ones will be removed automatically)."
         },
         "codesnap.maxSnapshotSize": {
           "type": "number",
           "default": 1,
+          "minimum": 0.1,
+          "maximum": 10,
           "description": "Maximum snapshot size in MB (prevents saving huge files)"
         },
         "codesnap.enableCloudSync": {
@@ -51,61 +169,134 @@
           "type": "boolean",
           "default": true,
           "description": "📊 Allow anonymous usage telemetry (helps improve the extension)"
+        },
+        "codesnap.imgurClientId": {
+          "type": "string",
+          "default": "",
+          "description": "Imgur Client ID for uploading screenshots (optional)"
+        },
+        "codesnap.reportTemplate": {
+          "type": "string",
+          "default": "standard",
+          "enum": ["standard", "detailed", "minimal"],
+          "description": "Template style for bug reports"
         }
       }
     },
-    "commands": [
-      {
-        "command": "spiderScreenshot.settings",
-        "title": "Spider Screenshot: Open Settings"
-      },
+    "keybindings": [
       {
         "command": "codesnap.saveCodeHistory",
-        "title": "CodeSnap: Save Code Snapshot"
+        "key": "ctrl+alt+s",
+        "mac": "cmd+alt+s",
+        "when": "editorTextFocus"
       },
       {
         "command": "codesnap.viewHistory",
-        "title": "CodeSnap: View Code History"
+        "key": "ctrl+alt+h",
+        "mac": "cmd+alt+h",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "spiderScreenshot.reportBug",
+        "key": "ctrl+alt+b",
+        "mac": "cmd+alt+b",
+        "when": "editorHasSelection"
       },
       {
         "command": "codesnap.clearSnapshots",
-        "title": "CodeSnap: Clear All Snapshots"
-      },
+        "key": "ctrl+alt+shift+del",
+        "mac": "cmd+alt+shift+del",
+        "when": "editorTextFocus"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "codesnap.saveCodeHistory",
+          "group": "spider@1",
+          "when": "editorTextFocus"
+        },
+        {
+          "command": "spiderScreenshot.reportBug",
+          "group": "spider@2",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "codesnap.viewHistory",
+          "group": "spider@3",
+          "when": "editorTextFocus"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "spiderScreenshot.settings",
+          "when": "true"
+        },
+        {
+          "command": "spiderScreenshot.upgradeToPro",
+          "when": "true"
+        },
+        {
+          "command": "spiderScreenshot.reportBug",
+          "when": "editorHasSelection || true"
+        },
+        {
+          "command": "spiderScreenshot.showHelp",
+          "when": "true"
+        },
+        {
+          "command": "codesnap.saveCodeHistory",
+          "when": "editorTextFocus"
+        },
+        {
+          "command": "codesnap.viewHistory",
+          "when": "true"
+        },
+        {
+          "command": "codesnap.clearSnapshots",
+          "when": "true"
+        },
+        {
+          "command": "codesnap.backupSnapshots",
+          "when": "true"
+        },
+        {
+          "command": "codesnap.restoreBackup",
+          "when": "true"
+        },
+        {
+          "command": "codesnap.openSnapshotFolder",
+          "when": "true"
+        },
+        {
+          "command": "codesnap.showLogs",
+          "when": "true"
+        },
+        {
+          "command": "codesnap.showLatestSnapshot",
+          "when": "true"
+        },
+        {
+          "command": "codesnap.showSaveLocation",
+          "when": "true"
+        },
+        {
+          "command": "codesnap.enterLicenseKey",
+          "when": "true"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "codesnap.saveCodeHistory",
+          "group": "spider",
+          "when": "resourceExtname =~ /\\.(js|ts|py|java|cpp|c|html|css|json|md|txt)$/"
+        }
+      ]
+    },
+    "submenus": [
       {
-        "command": "spiderScreenshot.showHelp",
-        "title": "Spider Screenshot: Show Help & Usage"
-      },
-      {
-        "command": "spiderScreenshot.createBugReport",
-        "title": "Spider Screenshot: Create Bug Report"
-      },
-      {
-        "command": "codesnap.backupSnapshots",
-        "title": "CodeSnap: Backup Snapshots"
-      },
-      {
-        "command": "codesnap.restoreBackup",
-        "title": "CodeSnap: Restore from Backup"
-      },
-      {
-        "command": "codesnap.openSnapshotFolder",
-        "title": "CodeSnap: Open Snapshot Folder"
-      },
-      {
-        "command": "codesnap.showLogs",
-        "title": "CodeSnap: Show Snapshot Logs"
-      },
-      {
-        "command": "codesnap.showLatestSnapshot",
-        "title": "CodeSnap: Show Latest Snapshot"
-      },
-      {
-        "command": "spiderScreenshot.upgradeToPro",
-        "title": "Spider Screenshot: Upgrade to Pro"
-      },
-      {
-        "command": "codesnap.showSaveLocation",
-        "title": "CodeSnap: Show Save Folder Path"
+        "id": "spider.snapshots",
+        "label": "Spider Screenshot"
       }
     ]
   },
@@ -114,14 +305,20 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile",
-    "test": "node ./out/test/runTest.js"
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package",
+    "publish": "vsce publish",
+    "lint": "eslint src --ext ts"
   },
   "devDependencies": {
     "@types/node": "^24.1.0",
     "@types/node-fetch": "^2.6.12",
     "@types/vscode": "^1.80.0",
     "@vscode/test-electron": "^2.2.3",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "eslint": "^8.56.0",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0"
   },
   "dependencies": {
     "adm-zip": "^0.5.16",
@@ -131,5 +328,34 @@
     "type": "git",
     "url": "https://github.com/Omer-sanee/codesnap.git"
   },
-  "license": "MIT"
+  "bugs": {
+    "url": "https://github.com/Omer-sanee/codesnap/issues"
+  },
+  "homepage": "https://github.com/Omer-sanee/codesnap#readme",
+  "sponsor": {
+    "url": "https://github.com/sponsors/SpiderDev"
+  },
+  "badges": [
+    {
+      "url": "https://img.shields.io/badge/version-1.6.0-blue",
+      "href": "https://marketplace.visualstudio.com/items?itemName=SpiderDev.spider-screenshot",
+      "description": "Version"
+    },
+    {
+      "url": "https://img.shields.io/badge/license-MIT-green",
+      "href": "https://github.com/Omer-sanee/codesnap/blob/main/LICENSE",
+      "description": "License"
+    },
+    {
+      "url": "https://img.shields.io/badge/commands-14-total",
+      "href": "https://marketplace.visualstudio.com/items?itemName=SpiderDev.spider-screenshot",
+      "description": "Total Commands"
+    }
+  ],
+  "galleryBanner": {
+    "color": "#1e1e1e",
+    "theme": "dark"
+  },
+  "markdown": "github",
+  "qna": "marketplace"
 }
