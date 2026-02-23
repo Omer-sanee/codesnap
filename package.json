@@ -2,7 +2,7 @@
   "name": "spider-screenshot",
   "displayName": "Spider Screenshot",
   "description": "Capture code snapshots, generate professional bug reports, and prepare for Pro cloud sync — built for developers.",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "license": "MIT",
   "publisher": "SpiderDev",
   "icon": "assets/icon.png",
@@ -29,21 +29,7 @@
     "testing"
   ],
   "activationEvents": [
-    "onStartupFinished",
-    "onCommand:spiderScreenshot.settings",
-    "onCommand:spiderScreenshot.upgradeToPro",
-    "onCommand:spiderScreenshot.reportBug",
-    "onCommand:spiderScreenshot.showHelp",
-    "onCommand:codesnap.saveCodeHistory",
-    "onCommand:codesnap.viewHistory",
-    "onCommand:codesnap.clearSnapshots",
-    "onCommand:codesnap.backupSnapshots",
-    "onCommand:codesnap.restoreBackup",
-    "onCommand:codesnap.openSnapshotFolder",
-    "onCommand:codesnap.showLogs",
-    "onCommand:codesnap.showLatestSnapshot",
-    "onCommand:codesnap.showSaveLocation",
-    "onCommand:codesnap.enterLicenseKey"
+    "*"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -337,7 +323,7 @@
   },
   "badges": [
     {
-      "url": "https://img.shields.io/badge/version-1.6.0-blue",
+      "url": "https://img.shields.io/badge/version-1.6.1-blue",
       "href": "https://marketplace.visualstudio.com/items?itemName=SpiderDev.spider-screenshot",
       "description": "Version"
     },
